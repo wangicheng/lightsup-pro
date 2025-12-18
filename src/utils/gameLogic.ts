@@ -1,0 +1,48 @@
+export const GRID_SIZE = 5;
+
+// 產生一個全亮的盤面 (目標狀態)
+export const createSolvedGrid = (): boolean[][] => {
+  return Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(true));
+};
+
+// 切換燈的邏輯
+export const toggleLights = (grid: boolean[][], row: number, col: number): boolean[][] => {
+  // 深拷貝 grid 以避免直接修改 state
+  const newGrid = grid.map(r => [...r]);
+
+  // 定義自己與周圍四個方向的座標偏移
+  const directions = [
+    [0, 0],   // 自己
+    [-1, 0],  // 上
+    [1, 0],   // 下
+    [0, -1],  // 左
+    [0, 1]    // 右
+  ];
+
+  directions.forEach(([dr, dc]) => {
+    const r = row + dr;
+    const c = col + dc;
+    // 檢查邊界
+    if (r >= 0 && r < GRID_SIZE && c >= 0 && c < GRID_SIZE) {
+      newGrid[r][c] = !newGrid[r][c];
+    }
+  });
+
+  return newGrid;
+};
+
+// 產生隨機題目 (從全亮狀態隨機點擊數次)
+export const generateRandomLevel = (difficulty: number = 10): boolean[][] => {
+  let grid = createSolvedGrid();
+  for (let i = 0; i < difficulty; i++) {
+    const r = Math.floor(Math.random() * GRID_SIZE);
+    const c = Math.floor(Math.random() * GRID_SIZE);
+    grid = toggleLights(grid, r, c);
+  }
+  return grid;
+};
+
+// 檢查是否勝利
+export const checkWin = (grid: boolean[][]): boolean => {
+  return grid.every(row => row.every(cell => cell === true));
+};

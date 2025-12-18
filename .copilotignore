@@ -1,0 +1,23 @@
+# 忽略依賴包 (通常預設會忽略，但寫上也無妨)
+node_modules/
+pnpm-lock.yaml
+
+# 忽略編譯產出
+dist/
+build/
+out/
+
+# 忽略靜態資源 (圖片、影片通常不需要讀取)
+public/images/
+assets/
+*.svg
+*.png
+
+# 忽略文件或日誌
+logs/
+*.md
+!README.md  # (選用) 保留 README 給它讀，這通常有助於理解專案全貌
+
+# 忽略舊版程式碼或備份
+legacy_code/
+backup/
