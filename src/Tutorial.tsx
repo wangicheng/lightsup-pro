@@ -6,69 +6,141 @@ type TutorialLevel = {
   id: string;
   title: string;
   description: string;
-  setup: () => boolean[][];
+  initialToggles: [number, number][];
 };
 
-const TUTORIAL_LEVELS: TutorialLevel[] = [
+type TutorialCategory = {
+  title: string;
+  levels: TutorialLevel[];
+};
+
+const TUTORIAL_CATEGORIES: TutorialCategory[] = [
   {
-    id: 'basic',
-    title: '基礎開關',
-    description: '點擊任意燈泡，會同時切換「它自己」與「上下左右」四個相鄰燈泡的狀態。試著點擊中間熄滅的燈泡，將它點亮。',
-    setup: () => {
-      // 產生一個全亮盤面，然後點擊中間，造成中間與四周熄滅
-      let grid = createSolvedGrid();
-      return toggleLights(grid, 2, 2);
-    }
+    title: '基礎觀念',
+    levels: [
+      {
+        id: 'basic',
+        title: '基礎開關',
+        description: '點擊任意燈泡，會同時切換「它自己」與「上下左右」四個相鄰燈泡的狀態。試著點擊中間熄滅的燈泡，將它點亮。',
+        initialToggles: [[2, 2]]
+      },
+      {
+        id: 'chase-intro',
+        title: '追燈法 (Chasing)',
+        description: '這是解題的核心技巧：當你看到某一列有暗燈時，點擊它「正下方」的燈泡，就能改變上方燈泡的狀態。試著點擊第二列的燈泡，來修復第一列的暗燈。',
+        initialToggles: [[1, 1], [1, 3]]
+      },
+      {
+        id: 'corner',
+        title: '邊角處理',
+        description: '角落的燈泡只有兩個鄰居。這在處理邊界情況時很重要。試著將角落的暗燈點亮。',
+        initialToggles: [[4, 0], [4, 4]]
+      },
+      {
+        id: 'advanced-row',
+        title: '整列消除',
+        description: '現在試試看連續運用「追燈法」。你的目標是把第一列全部點亮，不用管第二列會變怎樣。只要專注於「點擊暗燈的正下方」即可。',
+        initialToggles: [[1, 0], [1, 1], [1, 2], [1, 3], [1, 4]]
+      },
+    ]
   },
   {
-    id: 'chase-intro',
-    title: '追燈法 (Chasing)',
-    description: '這是解題的核心技巧：當你看到某一列有暗燈時，點擊它「正下方」的燈泡，就能改變上方燈泡的狀態。試著點擊第二列的燈泡，來修復第一列的暗燈。',
-    setup: () => {
-      let grid = createSolvedGrid();
-      // 模擬第一列有暗燈的情況 (透過點擊第二列造成)
-      grid = toggleLights(grid, 1, 1);
-      grid = toggleLights(grid, 1, 3);
-      return grid;
-    }
-  },
-  {
-    id: 'corner',
-    title: '邊角處理',
-    description: '角落的燈泡只有兩個鄰居。這在處理邊界情況時很重要。試著將角落的暗燈點亮。',
-    setup: () => {
-      let grid = createSolvedGrid();
-      grid = toggleLights(grid, 4, 0);
-      grid = toggleLights(grid, 4, 4);
-      return grid;
-    }
-  },
-  {
-    id: 'advanced-row',
-    title: '整列消除',
-    description: '現在試試看連續運用「追燈法」。你的目標是把第一列全部點亮，不用管第二列會變怎樣。只要專注於「點擊暗燈的正下方」即可。',
-    setup: () => {
-      let grid = createSolvedGrid();
-      grid = toggleLights(grid, 1, 0);
-      grid = toggleLights(grid, 1, 1);
-      grid = toggleLights(grid, 1, 2);
-      grid = toggleLights(grid, 1, 3);
-      grid = toggleLights(grid, 1, 4);
-      return grid;
-    }
+    title: '常見公式',
+    levels: [
+      {
+        id: '01001',
+        title: '公式：🌑🌕🌑🌑🌕',
+        description: '當追燈至最後一列，呈現「暗亮暗暗亮」的狀態時，這是一個常見的特殊情況。這時候無法直接消除，必須回到第一列點擊特定位置。',
+        initialToggles: [
+          [0, 4], [1, 3], [1, 4], [2, 2], [2, 4], 
+          [3, 1], [3, 2], [3, 3], [4, 0]
+        ]
+      },
+      {
+        id: '10010',
+        title: '公式：🌕🌑🌑🌕🌑',
+        description: '這是上一關的鏡像版本。當最後一列呈現「亮暗暗亮暗」時，同樣需要對應的公式解法。',
+        initialToggles: [
+          [0, 0], [1, 0], [1, 1], [2, 0], [2, 2], 
+          [3, 1], [3, 2], [3, 3], [4, 4]
+        ]
+      },
+      {
+        id: '00100',
+        title: '公式：🌑🌑🌕🌑🌑',
+        description: '當最後一列只有中間是亮燈「暗暗亮暗暗」時，這是最容易辨識的圖形之一。',
+        initialToggles: [
+          [0, 1], [0, 3], [1, 0], [1, 1], [1, 3], 
+          [1, 4], [2, 1], [2, 3], [4, 1], [4, 3]
+        ]
+      },
+      {
+        id: '00011',
+        title: '公式：🌑🌑🌑🌕🌕',
+        description: '當最後一列右邊兩顆是亮燈「暗暗暗亮亮」時的處理方式。',
+        initialToggles: [
+          [0, 1], [1, 0], [1, 1], [1, 2], [2, 3], 
+          [3, 0], [3, 1], [3, 3], [3, 4], [4, 3]
+        ]
+      },
+      {
+        id: '11000',
+        title: '公式：🌕🌕🌑🌑🌑',
+        description: '這是上一關的鏡像。當最後一列左邊兩顆是亮燈「亮亮暗暗暗」時的處理方式。',
+        initialToggles: [
+          [0, 3], [1, 2], [1, 3], [1, 4], [2, 1], 
+          [3, 0], [3, 1], [3, 3], [3, 4], [4, 1]
+        ]
+      },
+      {
+        id: '10101',
+        title: '公式：🌕🌑🌕🌑🌕',
+        description: '當最後一列呈現梅花樁式的「亮暗亮暗亮」排列時，需要使用此公式。',
+        initialToggles: [
+          [0, 0], [0, 1], [0, 2], [1, 1], [1, 3], 
+          [2, 2], [2, 3], [2, 4], [4, 2], [4, 3],
+          [4, 4]
+        ]
+      },
+      {
+        id: '01110',
+        title: '公式：🌑🌕🌕🌕🌑',
+        description: '當最後一列中間三顆是亮燈「暗亮亮亮暗」時，這是最後一種常見的基本公式。',
+        initialToggles: [
+          [0, 0], [0, 2], [0, 3], [1, 0], [1, 4], 
+          [2, 1], [2, 2], [2, 4], [4, 1], [4, 2],
+          [4, 4]
+        ]
+      }
+    ]
   }
 ];
 
 export default function Tutorial() {
-  const [activeLevelId, setActiveLevelId] = useState(TUTORIAL_LEVELS[0].id);
+  const [activeCategoryIndex, setActiveCategoryIndex] = useState(0);
+  const [activeLevelId, setActiveLevelId] = useState(TUTORIAL_CATEGORIES[0].levels[0].id);
   const [grid, setGrid] = useState<boolean[][]>([]);
   const [isWon, setIsWon] = useState(false);
 
-  const currentLevel = TUTORIAL_LEVELS.find(l => l.id === activeLevelId) || TUTORIAL_LEVELS[0];
+  const allLevels = TUTORIAL_CATEGORIES.flatMap(c => c.levels);
+  const currentLevel = allLevels.find(l => l.id === activeLevelId) || allLevels[0];
+
+  const handleCategoryChange = (index: number) => {
+    setActiveCategoryIndex(index);
+    setActiveLevelId(TUTORIAL_CATEGORIES[index].levels[0].id);
+  };
+
+  const initLevelGrid = (level: TutorialLevel) => {
+    let grid = createSolvedGrid();
+    level.initialToggles.forEach(([r, c]) => {
+      grid = toggleLights(grid, r, c);
+    });
+    return grid;
+  };
 
   // 切換關卡或重置時執行
   useEffect(() => {
-    setGrid(currentLevel.setup());
+    setGrid(initLevelGrid(currentLevel));
     setIsWon(false);
   }, [currentLevel]);
 
@@ -84,7 +156,7 @@ export default function Tutorial() {
   };
 
   const resetLevel = () => {
-    setGrid(currentLevel.setup());
+    setGrid(initLevelGrid(currentLevel));
     setIsWon(false);
   };
 
@@ -96,8 +168,28 @@ export default function Tutorial() {
       {/* Sidebar: Level Selection */}
       <div className="lg:w-1/3 flex flex-col gap-4">
         <h2 className="text-xl font-bold text-zinc-100 px-2">教學模式</h2>
-        <div className="flex flex-col gap-2">
-          {TUTORIAL_LEVELS.map((level) => (
+        
+        {/* Category Tabs */}
+        <div className="flex gap-2 px-1">
+          {TUTORIAL_CATEGORIES.map((category, index) => (
+            <button
+              key={index}
+              onClick={() => handleCategoryChange(index)}
+              className={`
+                px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200
+                ${activeCategoryIndex === index
+                  ? 'bg-zinc-100 text-zinc-900 shadow-md'
+                  : 'bg-zinc-800/50 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
+                }
+              `}
+            >
+              {category.title}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex flex-col gap-2 overflow-y-auto max-h-[50vh] pr-2 custom-scrollbar">
+          {TUTORIAL_CATEGORIES[activeCategoryIndex].levels.map((level) => (
             <button
               key={level.id}
               onClick={() => setActiveLevelId(level.id)}
@@ -115,7 +207,7 @@ export default function Tutorial() {
         </div>
 
         {/* Description Box */}
-        <div className="mt-4 bg-zinc-900/80 p-5 rounded-2xl border border-zinc-800 text-sm leading-relaxed text-zinc-300">
+        <div className="mt-auto bg-zinc-900/80 p-5 rounded-2xl border border-zinc-800 text-sm leading-relaxed text-zinc-300">
           <div className="text-amber-500 font-bold mb-2 uppercase tracking-wider text-xs">Mission</div>
           {currentLevel.description}
         </div>
