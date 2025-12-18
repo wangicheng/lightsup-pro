@@ -121,6 +121,8 @@ export default function Tutorial() {
   const [activeLevelId, setActiveLevelId] = useState(TUTORIAL_CATEGORIES[0].levels[0].id);
   const [grid, setGrid] = useState<boolean[][]>([]);
   const [isWon, setIsWon] = useState(false);
+  const [showFormula, setShowFormula] = useState(false); // 新增：控制是否顯示公式提示
+  const [remainingToggles, setRemainingToggles] = useState<string[]>([]); // 新增：追蹤剩餘需要點擊的位置
 
   const allLevels = TUTORIAL_CATEGORIES.flatMap(c => c.levels);
   const currentLevel = allLevels.find(l => l.id === activeLevelId) || allLevels[0];
@@ -142,6 +144,9 @@ export default function Tutorial() {
   useEffect(() => {
     setGrid(initLevelGrid(currentLevel));
     setIsWon(false);
+    setShowFormula(false); // 切換關卡時重置提示狀態
+    // 初始化剩餘點擊位置
+    setRemainingToggles(currentLevel.initialToggles.map(([r, c]) => `${r},${c}`));
   }, [currentLevel]);
 
   const handleCellClick = (r: number, c: number) => {
@@ -149,6 +154,16 @@ export default function Tutorial() {
     
     const newGrid = toggleLights(grid, r, c);
     setGrid(newGrid);
+
+    // 更新剩餘點擊位置
+    const key = `${r},${c}`;
+    setRemainingToggles(prev => {
+      if (prev.includes(key)) {
+        return prev.filter(k => k !== key);
+      } else {
+        return [...prev, key];
+      }
+    });
 
     if (checkWin(newGrid)) {
       setIsWon(true);
@@ -158,9 +173,15 @@ export default function Tutorial() {
   const resetLevel = () => {
     setGrid(initLevelGrid(currentLevel));
     setIsWon(false);
+    setRemainingToggles(currentLevel.initialToggles.map(([r, c]) => `${r},${c}`));
   };
 
   if (grid.length === 0) return null;
+
+  // 計算目前提示應該顯示在哪一列 (最小的列索引)
+  const hintRow = remainingToggles.length > 0 
+    ? Math.min(...remainingToggles.map(t => parseInt(t.split(',')[0]))) 
+    : -1;
 
   return (
     <div className="flex flex-col lg:flex-row gap-8 w-full max-w-5xl mx-auto animate-fade-in p-4">
@@ -207,8 +228,25 @@ export default function Tutorial() {
         </div>
 
         {/* Description Box */}
-        <div className="mt-auto bg-zinc-900/80 p-5 rounded-2xl border border-zinc-800 text-sm leading-relaxed text-zinc-300">
-          <div className="text-amber-500 font-bold mb-2 uppercase tracking-wider text-xs">Mission</div>
+        <div className="mt-auto bg-zinc-900/80 p-5 rounded-2xl border border-zinc-800 text-sm leading-relaxed text-zinc-300 relative">
+          <div className="flex justify-between items-center mb-2">
+            <div className="text-amber-500 font-bold uppercase tracking-wider text-xs">Mission</div>
+            {/* 顯示公式按鈕：僅在常見公式類別顯示 */}
+            {TUTORIAL_CATEGORIES[activeCategoryIndex].title === '常見公式' && (
+              <button
+                onClick={() => setShowFormula(!showFormula)}
+                className={`
+                  text-xs px-2 py-1 rounded border transition-colors
+                  ${showFormula 
+                    ? 'bg-amber-500/20 text-amber-400 border-amber-500/50' 
+                    : 'bg-zinc-800 text-zinc-400 border-zinc-700 hover:bg-zinc-700'
+                  }
+                `}
+              >
+                {showFormula ? '隱藏公式' : '顯示公式'}
+              </button>
+            )}
+          </div>
           {currentLevel.description}
         </div>
       </div>
@@ -233,22 +271,35 @@ export default function Tutorial() {
            <div className="flex flex-col gap-3">
             {grid.map((row, rIndex) => (
               <div key={rIndex} className="flex gap-3">
-                {row.map((isOn, cIndex) => (
-                  <button
-                    key={`${rIndex}-${cIndex}`}
-                    onClick={() => handleCellClick(rIndex, cIndex)}
-                    className={`
-                      relative w-12 h-12 sm:w-14 sm:h-14 rounded-xl transition-all duration-300 ease-out
-                      ${isOn 
-                        ? 'bg-amber-400 shadow-[0_0_20px_-5px_rgba(251,191,36,0.5)] scale-100' 
-                        : 'bg-zinc-800 hover:bg-zinc-750 scale-95'
-                      }
-                    `}
-                  >
-                    {!isOn && <div className="absolute inset-0 m-auto w-2 h-2 rounded-full bg-zinc-900/50" />}
-                    {isOn && <div className="absolute top-2 left-2 w-2 h-2 rounded-full bg-white/40 blur-[1px]" />}
-                  </button>
-                ))}
+                {row.map((isOn, cIndex) => {
+                  // 判斷是否為公式提示位置：只顯示目前進度最上方的一列
+                  const isHint = showFormula && rIndex === hintRow && remainingToggles.includes(`${rIndex},${cIndex}`);
+                  
+                  return (
+                    <button
+                      key={`${rIndex}-${cIndex}`}
+                      onClick={() => handleCellClick(rIndex, cIndex)}
+                      className={`
+                        relative w-12 h-12 sm:w-14 sm:h-14 rounded-xl transition-all duration-300 ease-out
+                        ${isOn 
+                          ? 'bg-amber-400 shadow-[0_0_20px_-5px_rgba(251,191,36,0.5)] scale-100' 
+                          : 'bg-zinc-800 hover:bg-zinc-750 scale-95'
+                        }
+                      `}
+                    >
+                      {!isOn && <div className="absolute inset-0 m-auto w-2 h-2 rounded-full bg-zinc-900/50" />}
+                      {isOn && <div className="absolute top-2 left-2 w-2 h-2 rounded-full bg-white/40 blur-[1px]" />}
+                      
+                      {/* 公式提示標記 */}
+                      {isHint && (
+                        <>
+                          <span className="absolute inset-0 border-4 border-red-500/70 rounded-xl animate-pulse z-10 pointer-events-none" />
+                          <span className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white text-xs font-bold flex items-center justify-center rounded-full z-20 shadow-lg">!</span>
+                        </>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             ))}
           </div>
