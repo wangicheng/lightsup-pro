@@ -127,7 +127,8 @@ export default function Tutorial() {
   const [activeLevelId, setActiveLevelId] = useState(TUTORIAL_CATEGORIES[0].levels[0].id);
   const [grid, setGrid] = useState<boolean[][]>([]);
   const [isWon, setIsWon] = useState(false);
-  const [showFormula, setShowFormula] = useState(false); // 新增：控制是否顯示公式提示
+  const [showHint, setShowHint] = useState(false); // 修改：控制是否顯示逐步提示 (原 showFormula)
+  const [showFormula, setShowFormula] = useState(false); // 新增：控制是否顯示完整公式
   const [remainingToggles, setRemainingToggles] = useState<string[]>([]); // 新增：追蹤剩餘需要點擊的位置
 
   const allLevels = TUTORIAL_CATEGORIES.flatMap(c => c.levels);
@@ -150,7 +151,8 @@ export default function Tutorial() {
   useEffect(() => {
     setGrid(initLevelGrid(currentLevel));
     setIsWon(false);
-    setShowFormula(false); // 切換關卡時重置提示狀態
+    setShowHint(false); // 切換關卡時重置提示狀態
+    setShowFormula(false); // 切換關卡時重置公式狀態
     // 初始化剩餘點擊位置
     setRemainingToggles(currentLevel.initialToggles.map(([r, c]) => `${r},${c}`));
   }, [currentLevel]);
@@ -237,21 +239,37 @@ export default function Tutorial() {
         <div className="bg-zinc-900/80 p-5 rounded-2xl border border-zinc-800 text-sm leading-relaxed text-zinc-300 relative shrink-0">
           <div className="flex justify-between items-center mb-2">
             <div className="text-amber-500 font-bold uppercase tracking-wider text-xs">Mission</div>
-            {/* 顯示公式按鈕：僅在常見公式類別顯示 */}
-            {TUTORIAL_CATEGORIES[activeCategoryIndex].title === '常見公式' && (
+            <div className="flex gap-2">
+              {/* 提示按鈕：所有關卡皆可用 */}
               <button
-                onClick={() => setShowFormula(!showFormula)}
+                onClick={() => setShowHint(!showHint)}
                 className={`
                   text-xs px-2 py-1 rounded border transition-colors
-                  ${showFormula 
+                  ${showHint 
                     ? 'bg-amber-500/20 text-amber-400 border-amber-500/50' 
                     : 'bg-zinc-800 text-zinc-400 border-zinc-700 hover:bg-zinc-700'
                   }
                 `}
               >
-                {showFormula ? '隱藏公式' : '顯示公式'}
+                {showHint ? '隱藏提示' : '提示'}
               </button>
-            )}
+              
+              {/* 顯示公式按鈕：僅在常見公式類別顯示 */}
+              {TUTORIAL_CATEGORIES[activeCategoryIndex].title === '常見公式' && (
+                <button
+                  onClick={() => setShowFormula(!showFormula)}
+                  className={`
+                    text-xs px-2 py-1 rounded border transition-colors
+                    ${showFormula 
+                      ? 'bg-blue-500/20 text-blue-400 border-blue-500/50' 
+                      : 'bg-zinc-800 text-zinc-400 border-zinc-700 hover:bg-zinc-700'
+                    }
+                  `}
+                >
+                  {showFormula ? '隱藏公式' : '顯示公式'}
+                </button>
+              )}
+            </div>
           </div>
           {currentLevel.description}
         </div>
@@ -278,8 +296,14 @@ export default function Tutorial() {
             {grid.map((row, rIndex) => (
               <div key={rIndex} className="flex gap-3">
                 {row.map((isOn, cIndex) => {
-                  // 判斷是否為公式提示位置：只顯示目前進度最上方的一列
-                  const isHint = showFormula && rIndex === hintRow && remainingToggles.includes(`${rIndex},${cIndex}`);
+                  // 判斷是否為提示位置
+                  // 1. 逐步提示 (Hint): 只顯示目前進度最上方的一列
+                  // 2. 完整公式 (Formula): 顯示所有剩餘位置
+                  const isTarget = remainingToggles.includes(`${rIndex},${cIndex}`);
+                  const isHintStep = showHint && rIndex === hintRow && isTarget;
+                  const isFormula = showFormula && isTarget;
+                  
+                  const showMarker = isHintStep || isFormula;
                   
                   return (
                     <button
@@ -296,11 +320,11 @@ export default function Tutorial() {
                       {!isOn && <div className="absolute inset-0 m-auto w-2 h-2 rounded-full bg-zinc-900/50" />}
                       {isOn && <div className="absolute top-2 left-2 w-2 h-2 rounded-full bg-white/40 blur-[1px]" />}
                       
-                      {/* 公式提示標記 */}
-                      {isHint && (
+                      {/* 提示標記 */}
+                      {showMarker && (
                         <>
-                          <span className="absolute inset-0 border-4 border-red-500/70 rounded-xl animate-pulse z-10 pointer-events-none" />
-                          <span className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white text-xs font-bold flex items-center justify-center rounded-full z-20 shadow-lg">!</span>
+                          <span className={`absolute inset-0 border-4 rounded-xl animate-pulse z-10 pointer-events-none ${isFormula ? 'border-blue-500/70' : 'border-red-500/70'}`} />
+                          <span className={`absolute -top-2 -right-2 w-5 h-5 text-white text-xs font-bold flex items-center justify-center rounded-full z-20 shadow-lg ${isFormula ? 'bg-blue-500' : 'bg-red-500'}`}>!</span>
                         </>
                       )}
                     </button>
