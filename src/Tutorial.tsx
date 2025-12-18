@@ -31,16 +31,22 @@ const TUTORIAL_CATEGORIES: TutorialCategory[] = [
         initialToggles: [[1, 1], [1, 3]]
       },
       {
-        id: 'corner',
-        title: '邊角處理',
-        description: '角落的燈泡只有兩個鄰居。這在處理邊界情況時很重要。試著將角落的暗燈點亮。',
-        initialToggles: [[4, 0], [4, 4]]
+        id: 'chase-practice-1',
+        title: '追燈法練習 I',
+        description: '運用剛學會的追燈法技巧：由上而下，逐列處理。看到哪一列有暗燈，就點擊下一列對應位置的燈泡來修復它。請試著將所有燈泡點亮。',
+        initialToggles: [
+          [1, 1], [2, 0], [2, 1], [2, 2], [3, 3],
+          [4, 0], [4, 1], [4, 3], [4, 4]
+        ]
       },
       {
-        id: 'advanced-row',
-        title: '整列消除',
-        description: '現在試試看連續運用「追燈法」。你的目標是把第一列全部點亮，不用管第二列會變怎樣。只要專注於「點擊暗燈的正下方」即可。',
-        initialToggles: [[1, 0], [1, 1], [1, 2], [1, 3], [1, 4]]
+        id: 'chase-practice-2',
+        title: '追燈法練習 II',
+        description: '這是追燈法的進階練習。雖然標準追燈法是點擊下方燈泡，但有時直接點擊同一列的燈泡可能更有效率（例如三個暗燈相連時）。試著觀察並找出最有效率的解法。',
+        initialToggles: [
+          [0, 2], [2, 2], [3, 1], [3, 2], [3, 3],
+          [4, 0], [4, 4]
+        ]
       },
     ]
   },
