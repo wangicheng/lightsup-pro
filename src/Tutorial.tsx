@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { GRID_SIZE, toggleLights, createSolvedGrid, checkWin } from './utils/gameLogic';
+import { toggleLights, createSolvedGrid, checkWin } from './utils/gameLogic';
 
 // 定義教學關卡資料結構
 type TutorialLevel = {
