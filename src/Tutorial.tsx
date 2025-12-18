@@ -184,14 +184,14 @@ export default function Tutorial() {
     : -1;
 
   return (
-    <div className="flex flex-col lg:flex-row gap-8 w-full max-w-5xl mx-auto animate-fade-in p-4">
+    <div className="flex flex-col lg:flex-row gap-8 w-full max-w-5xl mx-auto animate-fade-in p-4 lg:h-[600px]">
       
       {/* Sidebar: Level Selection */}
-      <div className="lg:w-1/3 flex flex-col gap-4">
-        <h2 className="text-xl font-bold text-zinc-100 px-2">教學模式</h2>
+      <div className="lg:w-1/3 flex flex-col gap-4 h-full">
+        <h2 className="text-xl font-bold text-zinc-100 px-2 shrink-0">教學模式</h2>
         
         {/* Category Tabs */}
-        <div className="flex gap-2 px-1">
+        <div className="flex gap-2 px-1 shrink-0">
           {TUTORIAL_CATEGORIES.map((category, index) => (
             <button
               key={index}
@@ -209,13 +209,13 @@ export default function Tutorial() {
           ))}
         </div>
 
-        <div className="flex flex-col gap-2 overflow-y-auto max-h-[50vh] pr-2 custom-scrollbar">
+        <div className="flex flex-col gap-2 overflow-y-auto pr-2 flex-1 min-h-0 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-zinc-800 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-zinc-700">
           {TUTORIAL_CATEGORIES[activeCategoryIndex].levels.map((level) => (
             <button
               key={level.id}
               onClick={() => setActiveLevelId(level.id)}
               className={`
-                text-left px-4 py-3 rounded-xl transition-all duration-200 border
+                text-left px-4 py-3 rounded-xl transition-all duration-200 border shrink-0
                 ${activeLevelId === level.id 
                   ? 'bg-zinc-800 border-amber-500/50 text-amber-400 shadow-lg' 
                   : 'bg-zinc-900/50 border-zinc-800 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
@@ -228,7 +228,7 @@ export default function Tutorial() {
         </div>
 
         {/* Description Box */}
-        <div className="mt-auto bg-zinc-900/80 p-5 rounded-2xl border border-zinc-800 text-sm leading-relaxed text-zinc-300 relative">
+        <div className="bg-zinc-900/80 p-5 rounded-2xl border border-zinc-800 text-sm leading-relaxed text-zinc-300 relative shrink-0">
           <div className="flex justify-between items-center mb-2">
             <div className="text-amber-500 font-bold uppercase tracking-wider text-xs">Mission</div>
             {/* 顯示公式按鈕：僅在常見公式類別顯示 */}
@@ -252,7 +252,7 @@ export default function Tutorial() {
       </div>
 
       {/* Main Area: Game Board */}
-      <div className="lg:w-2/3 flex flex-col items-center justify-center min-h-[500px] bg-zinc-950/50 rounded-3xl border border-zinc-900 relative overflow-hidden">
+      <div className="lg:w-2/3 flex flex-col items-center justify-center min-h-[500px] lg:h-full bg-zinc-950/50 rounded-3xl border border-zinc-900 relative overflow-hidden">
         
         {/* Success Overlay */}
         {isWon && (
