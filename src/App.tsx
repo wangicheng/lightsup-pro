@@ -41,7 +41,7 @@ export default function App() {
 
   return (
     <div 
-      className="h-screen w-full bg-zinc-950 flex flex-col items-center p-6 text-zinc-100 font-sans selection:bg-amber-500/30 overflow-y-auto scrollbar-hide"
+      className="h-screen w-full bg-zinc-950 flex flex-col items-center text-zinc-100 font-sans selection:bg-amber-500/30 overflow-hidden"
     >
       <style>{`
         .scrollbar-hide::-webkit-scrollbar {
@@ -54,7 +54,7 @@ export default function App() {
       `}</style>
       
       {/* Header Area */}
-      <div className="mb-8 text-center space-y-2 mt-4">
+      <div className="mb-8 text-center space-y-2 mt-10 flex-none">
         <h1 className="text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-zinc-100 to-zinc-500">
           LIGHTS UP
         </h1>
@@ -62,7 +62,7 @@ export default function App() {
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex p-1 bg-zinc-900 rounded-full mb-8 border border-zinc-800">
+      <div className="flex p-1 bg-zinc-900 rounded-full mb-8 border border-zinc-800 flex-none">
         <button
           onClick={() => {
             setView('game');
@@ -99,17 +99,19 @@ export default function App() {
       </div>
 
       {/* Content Area */}
-      <div className="w-full flex justify-center">
-        {view === 'game' && (
-          <Game 
-            key={replayGrid ? 'replay' : 'normal'} // 強制重新掛載以重置狀態
-            onGameComplete={handleGameComplete} 
-            initialLevel={replayGrid || undefined}
-            onLevelReset={handleLevelReset}
-          />
-        )}
-        {view === 'history' && <History records={history} onReplay={handleReplay} />}
-        {view === 'tutorial' && <Tutorial />}
+      <div className="w-full flex-1 overflow-y-auto scrollbar-hide px-6 pb-6">
+        <div className="flex justify-center">
+          {view === 'game' && (
+            <Game 
+              key={replayGrid ? 'replay' : 'normal'} // 強制重新掛載以重置狀態
+              onGameComplete={handleGameComplete} 
+              initialLevel={replayGrid || undefined}
+              onLevelReset={handleLevelReset}
+            />
+          )}
+          {view === 'history' && <History records={history} onReplay={handleReplay} />}
+          {view === 'tutorial' && <Tutorial />}
+        </div>
       </div>
       
     </div>
