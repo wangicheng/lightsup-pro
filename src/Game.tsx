@@ -23,8 +23,8 @@ export default function Game({ onGameComplete, initialLevel, onLevelReset, gridS
     if (onLevelReset) {
       onLevelReset();
     }
-    // 難度係數隨尺寸增加
-    const difficulty = Math.max(10, gridSize * gridSize * 2);
+    const difficulty = gridSize * gridSize * 3 + Math.floor(Math.random() * 2);
+    
     const newLevel = generateRandomLevel(gridSize, difficulty);
     setGrid(newLevel);
     setInitialGrid(newLevel);

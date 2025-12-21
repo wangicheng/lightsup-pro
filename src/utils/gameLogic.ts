@@ -38,6 +38,15 @@ export const generateRandomLevel = (size: number = 5, difficulty: number = 10): 
     const c = Math.floor(Math.random() * size);
     grid = toggleLights(grid, r, c);
   }
+
+  // 確保不會剛好生成已完成的狀態
+  // 如果剛好是完成狀態，再隨機點擊一次
+  if (checkWin(grid)) {
+    const r = Math.floor(Math.random() * size);
+    const c = Math.floor(Math.random() * size);
+    grid = toggleLights(grid, r, c);
+  }
+
   return grid;
 };
 
