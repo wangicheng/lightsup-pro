@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import type { GameRecord } from './types';
 
@@ -8,6 +8,8 @@ interface HistoryProps {
 }
 
 export default function History({ records, onReplay }: HistoryProps) {
+  const [visibleCount, setVisibleCount] = useState(20);
+
   const stats = useMemo(() => {
     if (records.length === 0) return null;
     
@@ -67,6 +69,9 @@ export default function History({ records, onReplay }: HistoryProps) {
 
     return { totalGames, avgTime, bestTime, distribution };
   }, [records]);
+
+  const recentRecords = useMemo(() => records.slice().reverse(), [records]);
+  const displayedRecords = recentRecords.slice(0, visibleCount);
 
   const formatTime = (seconds: number) => {
     const totalMs = Math.round(seconds * 1000);
@@ -160,7 +165,7 @@ export default function History({ records, onReplay }: HistoryProps) {
       <div className="space-y-4">
         <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-wider px-2">近期紀錄</h3>
         <div className="grid gap-3">
-          {records.slice().reverse().map((record) => (
+          {displayedRecords.map((record) => (
             <div key={record.id} className="group bg-zinc-900/80 border border-zinc-800/50 p-4 rounded-xl flex items-center justify-between hover:border-zinc-700 transition-colors">
               
               <div className="flex items-center gap-6">
@@ -202,6 +207,17 @@ export default function History({ records, onReplay }: HistoryProps) {
             </div>
           ))}
         </div>
+
+        {visibleCount < records.length && (
+          <div className="flex justify-center pt-4">
+            <button
+              onClick={() => setVisibleCount(prev => prev + 20)}
+              className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 text-sm font-medium rounded-lg transition-colors"
+            >
+              載入更多 ({records.length - visibleCount})
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
