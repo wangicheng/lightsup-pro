@@ -4,9 +4,11 @@ import type { GameRecord } from './types';
 
 interface GameProps {
   onGameComplete?: (data: Pick<GameRecord, 'timeSpent' | 'moves' | 'initialGrid'>) => void;
+  initialLevel?: boolean[][];
+  onLevelReset?: () => void;
 }
 
-export default function Game({ onGameComplete }: GameProps) {
+export default function Game({ onGameComplete, initialLevel, onLevelReset }: GameProps) {
   const [grid, setGrid] = useState<boolean[][]>([]);
   const [initialGrid, setInitialGrid] = useState<boolean[][]>([]);
   const [moves, setMoves] = useState(0);
@@ -17,6 +19,9 @@ export default function Game({ onGameComplete }: GameProps) {
 
   // 初始化遊戲
   const startNewGame = useCallback(() => {
+    if (onLevelReset) {
+      onLevelReset();
+    }
     const newLevel = generateRandomLevel(100);
     setGrid(newLevel);
     setInitialGrid(newLevel);
@@ -25,12 +30,25 @@ export default function Game({ onGameComplete }: GameProps) {
     setIsWon(false);
     setIsPlaying(true);
     startTimeRef.current = Date.now();
-  }, []);
+  }, [onLevelReset]);
 
   // 第一次加載
   useEffect(() => {
-    startNewGame();
-  }, [startNewGame]);
+    // 防止在遊戲進行中因父組件重渲染而重置 (除非是切換到重播模式)
+    if (grid.length > 0 && !initialLevel) return;
+
+    if (initialLevel) {
+      setGrid(initialLevel);
+      setInitialGrid(initialLevel);
+      setMoves(0);
+      setTime(0);
+      setIsWon(false);
+      setIsPlaying(true);
+      startTimeRef.current = Date.now();
+    } else {
+      startNewGame();
+    }
+  }, [initialLevel, startNewGame]);
 
   // 計時器邏輯
   useEffect(() => {

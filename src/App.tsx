@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Game from './Game';
 import Tutorial from './Tutorial';
 import History from './History';
@@ -8,6 +8,7 @@ type View = 'game' | 'tutorial' | 'history';
 
 export default function App() {
   const [view, setView] = useState<View>('game');
+  const [replayGrid, setReplayGrid] = useState<boolean[][] | null>(null);
   const [history, setHistory] = useState<GameRecord[]>(() => {
     const saved = localStorage.getItem('lightsup-history');
     return saved ? JSON.parse(saved) : [];
@@ -18,6 +19,9 @@ export default function App() {
   }, [history]);
 
   const handleGameComplete = (data: Pick<GameRecord, 'timeSpent' | 'moves' | 'initialGrid'>) => {
+    // 如果是重播模式，不記錄到歷史
+    if (replayGrid) return;
+
     const newRecord: GameRecord = {
       id: crypto.randomUUID(),
       timestamp: Date.now(),
@@ -25,6 +29,15 @@ export default function App() {
     };
     setHistory(prev => [...prev, newRecord]);
   };
+
+  const handleReplay = (grid: boolean[][]) => {
+    setReplayGrid(grid);
+    setView('game');
+  };
+
+  const handleLevelReset = useCallback(() => {
+    setReplayGrid(null);
+  }, []);
 
   return (
     <div 
@@ -51,7 +64,10 @@ export default function App() {
       {/* Navigation Tabs */}
       <div className="flex p-1 bg-zinc-900 rounded-full mb-8 border border-zinc-800">
         <button
-          onClick={() => setView('game')}
+          onClick={() => {
+            setView('game');
+            setReplayGrid(null); // 切換到 Game tab 時重置為一般模式
+          }}
           className={`px-6 py-2 rounded-full text-sm font-bold transition-all ${
             view === 'game' 
               ? 'bg-zinc-100 text-zinc-950 shadow-lg' 
@@ -84,8 +100,15 @@ export default function App() {
 
       {/* Content Area */}
       <div className="w-full flex justify-center">
-        {view === 'game' && <Game onGameComplete={handleGameComplete} />}
-        {view === 'history' && <History records={history} />}
+        {view === 'game' && (
+          <Game 
+            key={replayGrid ? 'replay' : 'normal'} // 強制重新掛載以重置狀態
+            onGameComplete={handleGameComplete} 
+            initialLevel={replayGrid || undefined}
+            onLevelReset={handleLevelReset}
+          />
+        )}
+        {view === 'history' && <History records={history} onReplay={handleReplay} />}
         {view === 'tutorial' && <Tutorial />}
       </div>
       

@@ -4,9 +4,10 @@ import type { GameRecord } from './types';
 
 interface HistoryProps {
   records: GameRecord[];
+  onReplay: (grid: boolean[][]) => void;
 }
 
-export default function History({ records }: HistoryProps) {
+export default function History({ records, onReplay }: HistoryProps) {
   const stats = useMemo(() => {
     if (records.length === 0) return null;
     
@@ -160,7 +161,7 @@ export default function History({ records }: HistoryProps) {
         <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-wider px-2">近期紀錄</h3>
         <div className="grid gap-3">
           {records.slice().reverse().map((record) => (
-            <div key={record.id} className="bg-zinc-900/80 border border-zinc-800/50 p-4 rounded-xl flex items-center justify-between hover:border-zinc-700 transition-colors">
+            <div key={record.id} className="group bg-zinc-900/80 border border-zinc-800/50 p-4 rounded-xl flex items-center justify-between hover:border-zinc-700 transition-colors">
               
               <div className="flex items-center gap-6">
                 {/* Mini Grid Preview */}
@@ -182,10 +183,20 @@ export default function History({ records }: HistoryProps) {
                 </div>
               </div>
 
-              <div className="flex flex-col items-end">
-                <span className="text-zinc-400 text-sm font-medium">
-                  {record.moves} <span className="text-xs text-zinc-600 uppercase">Moves</span>
-                </span>
+              <div className="relative w-28 flex justify-end items-center">
+                <div className="flex flex-col items-end transition-opacity duration-200 group-hover:opacity-0">
+                  <span className="text-zinc-400 text-sm font-medium">
+                    {record.moves} <span className="text-xs text-zinc-600 uppercase">Moves</span>
+                  </span>
+                </div>
+                
+                <button
+                  onClick={() => onReplay(record.initialGrid)}
+                  className="absolute right-0 opacity-0 group-hover:opacity-100 transition-all duration-200 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-bold rounded-lg uppercase tracking-wide shadow-lg transform scale-95 group-hover:scale-100"
+                  title="重玩此局 (不計入紀錄)"
+                >
+                  Replay
+                </button>
               </div>
 
             </div>
