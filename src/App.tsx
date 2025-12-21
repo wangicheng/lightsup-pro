@@ -62,15 +62,24 @@ export default function App() {
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex p-1 bg-zinc-900 rounded-full mb-8 border border-zinc-800 flex-none">
+      <div className="relative flex w-full max-w-sm p-1 bg-zinc-900 rounded-full mb-8 border border-zinc-800 flex-none">
+        {/* Sliding Background */}
+        <div 
+          className={`absolute top-1 bottom-1 left-1 w-[calc((100%-0.5rem)/3)] rounded-full bg-zinc-100 shadow-lg transition-transform duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] ${
+            view === 'game' ? 'translate-x-0' : 
+            view === 'history' ? 'translate-x-full' : 
+            'translate-x-[200%]'
+          }`} 
+        />
+
         <button
           onClick={() => {
             setView('game');
             setReplayGrid(null); // 切換到 Game tab 時重置為一般模式
           }}
-          className={`px-6 py-2 rounded-full text-sm font-bold transition-all ${
+          className={`relative z-10 flex-1 py-2 text-sm font-bold transition-colors duration-300 ${
             view === 'game' 
-              ? 'bg-zinc-100 text-zinc-950 shadow-lg' 
+              ? 'text-zinc-950' 
               : 'text-zinc-500 hover:text-zinc-300'
           }`}
         >
@@ -78,9 +87,9 @@ export default function App() {
         </button>
         <button
           onClick={() => setView('history')}
-          className={`px-6 py-2 rounded-full text-sm font-bold transition-all ${
+          className={`relative z-10 flex-1 py-2 text-sm font-bold transition-colors duration-300 ${
             view === 'history' 
-              ? 'bg-zinc-100 text-zinc-950 shadow-lg' 
+              ? 'text-zinc-950' 
               : 'text-zinc-500 hover:text-zinc-300'
           }`}
         >
@@ -88,9 +97,9 @@ export default function App() {
         </button>
         <button
           onClick={() => setView('tutorial')}
-          className={`px-6 py-2 rounded-full text-sm font-bold transition-all ${
+          className={`relative z-10 flex-1 py-2 text-sm font-bold transition-colors duration-300 ${
             view === 'tutorial' 
-              ? 'bg-zinc-100 text-zinc-950 shadow-lg' 
+              ? 'text-zinc-950' 
               : 'text-zinc-500 hover:text-zinc-300'
           }`}
         >
