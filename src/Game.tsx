@@ -1,8 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { generateRandomLevel, toggleLights, checkWin } from './utils/gameLogic';
+import type { GameRecord } from './types';
 
-export default function Game() {
+interface GameProps {
+  onGameComplete?: (data: Pick<GameRecord, 'timeSpent' | 'moves' | 'initialGrid'>) => void;
+}
+
+export default function Game({ onGameComplete }: GameProps) {
   const [grid, setGrid] = useState<boolean[][]>([]);
+  const [initialGrid, setInitialGrid] = useState<boolean[][]>([]);
   const [moves, setMoves] = useState(0);
   const [isWon, setIsWon] = useState(false);
   const [time, setTime] = useState(0);
@@ -10,7 +16,9 @@ export default function Game() {
 
   // 初始化遊戲
   const startNewGame = useCallback(() => {
-    setGrid(generateRandomLevel(100)); // 隨機打亂 100 次
+    const newLevel = generateRandomLevel(100);
+    setGrid(newLevel);
+    setInitialGrid(newLevel);
     setMoves(0);
     setTime(0);
     setIsWon(false);
@@ -39,11 +47,19 @@ export default function Game() {
 
     const newGrid = toggleLights(grid, r, c);
     setGrid(newGrid);
-    setMoves((prev) => prev + 1);
+    const newMoves = moves + 1;
+    setMoves(newMoves);
 
     if (checkWin(newGrid)) {
       setIsWon(true);
       setIsPlaying(false);
+      if (onGameComplete) {
+        onGameComplete({
+          timeSpent: time,
+          moves: newMoves,
+          initialGrid: initialGrid
+        });
+      }
     }
   };
 
