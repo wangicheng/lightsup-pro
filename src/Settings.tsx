@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface SettingsProps {
   gridSize: number;
   setGridSize: (size: number) => void;
