@@ -1,12 +1,11 @@
-export const GRID_SIZE = 5;
-
 // 產生一個全亮的盤面 (目標狀態)
-export const createSolvedGrid = (): boolean[][] => {
-  return Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(true));
+export const createSolvedGrid = (size: number = 5): boolean[][] => {
+  return Array(size).fill(null).map(() => Array(size).fill(true));
 };
 
 // 切換燈的邏輯
 export const toggleLights = (grid: boolean[][], row: number, col: number): boolean[][] => {
+  const size = grid.length;
   // 深拷貝 grid 以避免直接修改 state
   const newGrid = grid.map(r => [...r]);
 
@@ -23,7 +22,7 @@ export const toggleLights = (grid: boolean[][], row: number, col: number): boole
     const r = row + dr;
     const c = col + dc;
     // 檢查邊界
-    if (r >= 0 && r < GRID_SIZE && c >= 0 && c < GRID_SIZE) {
+    if (r >= 0 && r < size && c >= 0 && c < size) {
       newGrid[r][c] = !newGrid[r][c];
     }
   });
@@ -32,11 +31,11 @@ export const toggleLights = (grid: boolean[][], row: number, col: number): boole
 };
 
 // 產生隨機題目 (從全亮狀態隨機點擊數次)
-export const generateRandomLevel = (difficulty: number = 10): boolean[][] => {
-  let grid = createSolvedGrid();
+export const generateRandomLevel = (size: number = 5, difficulty: number = 10): boolean[][] => {
+  let grid = createSolvedGrid(size);
   for (let i = 0; i < difficulty; i++) {
-    const r = Math.floor(Math.random() * GRID_SIZE);
-    const c = Math.floor(Math.random() * GRID_SIZE);
+    const r = Math.floor(Math.random() * size);
+    const c = Math.floor(Math.random() * size);
     grid = toggleLights(grid, r, c);
   }
   return grid;

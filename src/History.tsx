@@ -5,20 +5,30 @@ import type { GameRecord } from './types';
 interface HistoryProps {
   records: GameRecord[];
   onReplay: (grid: boolean[][]) => void;
+  gridSize: number;
 }
 
-export default function History({ records, onReplay }: HistoryProps) {
+export default function History({ records, onReplay, gridSize }: HistoryProps) {
   const [visibleCount, setVisibleCount] = useState(20);
 
+  // Filter records by current grid size
+  const filteredRecords = useMemo(() => {
+    return records.filter(r => {
+      // 兼容舊資料 (沒有 gridSize 屬性視為 5x5)
+      const rSize = (r as any).gridSize || 5;
+      return rSize === gridSize;
+    });
+  }, [records, gridSize]);
+
   const stats = useMemo(() => {
-    if (records.length === 0) return null;
+    if (filteredRecords.length === 0) return null;
     
-    const totalGames = records.length;
-    const totalTime = records.reduce((acc, r) => acc + r.timeSpent, 0);
+    const totalGames = filteredRecords.length;
+    const totalTime = filteredRecords.reduce((acc, r) => acc + r.timeSpent, 0);
     const avgTime = totalTime / totalGames;
     
     // 排序時間以計算分位數
-    const times = records.map(r => r.timeSpent).sort((a, b) => a - b);
+    const times = filteredRecords.map(r => r.timeSpent).sort((a, b) => a - b);
     const bestTime = times[0];
     const maxTime = times[times.length - 1];
     
@@ -68,9 +78,9 @@ export default function History({ records, onReplay }: HistoryProps) {
     }
 
     return { totalGames, avgTime, bestTime, distribution };
-  }, [records]);
+  }, [filteredRecords]);
 
-  const recentRecords = useMemo(() => records.slice().reverse(), [records]);
+  const recentRecords = useMemo(() => filteredRecords.slice().reverse(), [filteredRecords]);
   const displayedRecords = recentRecords.slice(0, visibleCount);
 
   const formatTime = (seconds: number) => {
@@ -90,10 +100,10 @@ export default function History({ records, onReplay }: HistoryProps) {
     });
   };
 
-  if (records.length === 0) {
+  if (filteredRecords.length === 0) {
     return (
       <div className="text-center text-zinc-500 mt-20 animate-fade-in">
-        <p>尚無遊戲紀錄</p>
+        <p>尚無 {gridSize}x{gridSize} 的遊戲紀錄</p>
         <p className="text-sm mt-2">完成一局遊戲後將在此顯示紀錄</p>
       </div>
     );
@@ -163,14 +173,19 @@ export default function History({ records, onReplay }: HistoryProps) {
 
       {/* History List */}
       <div className="space-y-4">
-        <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-wider px-2">近期紀錄</h3>
+        <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-wider px-2">
+          近期紀錄 ({gridSize}x{gridSize})
+        </h3>
         <div className="grid gap-3">
           {displayedRecords.map((record) => (
             <div key={record.id} className="group bg-zinc-900/80 border border-zinc-800/50 p-4 rounded-xl flex items-center justify-between hover:border-zinc-700 transition-colors">
               
               <div className="flex items-center gap-6">
                 {/* Mini Grid Preview */}
-                <div className="grid grid-cols-5 gap-px w-10 h-10 bg-zinc-800 rounded overflow-hidden border border-zinc-800">
+                <div 
+                  className="grid gap-px w-10 h-10 bg-zinc-800 rounded overflow-hidden border border-zinc-800"
+                  style={{ gridTemplateColumns: `repeat(${record.initialGrid.length}, 1fr)` }}
+                >
                   {record.initialGrid.map((row, r) => 
                     row.map((isOn, c) => (
                       <div key={`${r}-${c}`} className={`${isOn ? 'bg-amber-500' : 'bg-zinc-700/50'}`} />
@@ -208,13 +223,13 @@ export default function History({ records, onReplay }: HistoryProps) {
           ))}
         </div>
 
-        {visibleCount < records.length && (
+        {visibleCount < filteredRecords.length && (
           <div className="flex justify-center pt-4">
             <button
               onClick={() => setVisibleCount(prev => prev + 20)}
               className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 text-sm font-medium rounded-lg transition-colors"
             >
-              載入更多 ({records.length - visibleCount})
+              載入更多 ({filteredRecords.length - visibleCount})
             </button>
           </div>
         )}

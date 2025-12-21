@@ -140,7 +140,7 @@ export default function Tutorial() {
   };
 
   const initLevelGrid = (level: TutorialLevel) => {
-    let grid = createSolvedGrid();
+    let grid = createSolvedGrid(5);
     level.initialToggles.forEach(([r, c]) => {
       grid = toggleLights(grid, r, c);
     });

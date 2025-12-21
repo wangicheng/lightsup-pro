@@ -6,9 +6,10 @@ interface GameProps {
   onGameComplete?: (data: Pick<GameRecord, 'timeSpent' | 'moves' | 'initialGrid'>) => void;
   initialLevel?: boolean[][];
   onLevelReset?: () => void;
+  gridSize?: number;
 }
 
-export default function Game({ onGameComplete, initialLevel, onLevelReset }: GameProps) {
+export default function Game({ onGameComplete, initialLevel, onLevelReset, gridSize = 5 }: GameProps) {
   const [grid, setGrid] = useState<boolean[][]>([]);
   const [initialGrid, setInitialGrid] = useState<boolean[][]>([]);
   const [moves, setMoves] = useState(0);
@@ -22,7 +23,9 @@ export default function Game({ onGameComplete, initialLevel, onLevelReset }: Gam
     if (onLevelReset) {
       onLevelReset();
     }
-    const newLevel = generateRandomLevel(100);
+    // 難度係數隨尺寸增加
+    const difficulty = Math.max(10, gridSize * gridSize * 2);
+    const newLevel = generateRandomLevel(gridSize, difficulty);
     setGrid(newLevel);
     setInitialGrid(newLevel);
     setMoves(0);
@@ -30,12 +33,12 @@ export default function Game({ onGameComplete, initialLevel, onLevelReset }: Gam
     setIsWon(false);
     setIsPlaying(true);
     startTimeRef.current = Date.now();
-  }, [onLevelReset]);
+  }, [onLevelReset, gridSize]);
 
   // 第一次加載
   useEffect(() => {
-    // 防止在遊戲進行中因父組件重渲染而重置 (除非是切換到重播模式)
-    if (grid.length > 0 && !initialLevel) return;
+    // 防止在遊戲進行中因父組件重渲染而重置 (除非是切換到重播模式或改變尺寸)
+    if (grid.length > 0 && !initialLevel && grid.length === gridSize) return;
 
     if (initialLevel) {
       setGrid(initialLevel);
@@ -48,7 +51,7 @@ export default function Game({ onGameComplete, initialLevel, onLevelReset }: Gam
     } else {
       startNewGame();
     }
-  }, [initialLevel, startNewGame]);
+  }, [initialLevel, startNewGame, gridSize]);
 
   // 計時器邏輯
   useEffect(() => {
@@ -101,7 +104,7 @@ export default function Game({ onGameComplete, initialLevel, onLevelReset }: Gam
   if (grid.length === 0) return null;
 
   return (
-    <div className="flex flex-col items-center w-full max-w-2xl mx-auto animate-fade-in">
+    <div className="flex flex-col items-center w-full max-w-4xl mx-auto animate-fade-in">
       
       {/* Stats Bar */}
       <div className="flex items-center gap-12 mb-10">
@@ -121,37 +124,42 @@ export default function Game({ onGameComplete, initialLevel, onLevelReset }: Gam
       </div>
 
       {/* Game Board Container */}
-      <div className="relative group">
+      <div className="relative group w-full max-w-[min(90vw,600px)] aspect-square">
         {/* Glow effect behind the board */}
         <div className={`absolute -inset-1 bg-gradient-to-r from-amber-500/20 to-orange-500/20 rounded-[2rem] blur-xl transition-opacity duration-1000 ${isWon ? 'opacity-100' : 'opacity-0'}`} />
         
-        <div className="relative bg-zinc-900/80 backdrop-blur-sm p-6 rounded-[2rem] border border-zinc-800 shadow-2xl">
-          <div className="flex flex-col gap-3">
+        <div className="relative bg-zinc-900/80 backdrop-blur-sm p-4 sm:p-6 rounded-[2rem] border border-zinc-800 shadow-2xl h-full flex items-center justify-center">
+          <div 
+            className="grid gap-1 sm:gap-2 w-full h-full"
+            style={{ 
+              gridTemplateColumns: `repeat(${grid.length}, minmax(0, 1fr))`,
+              gridTemplateRows: `repeat(${grid.length}, minmax(0, 1fr))`
+            }}
+          >
             {grid.map((row, rIndex) => (
-              <div key={rIndex} className="flex gap-3">
-                {row.map((isOn, cIndex) => (
-                  <button
-                    key={`${rIndex}-${cIndex}`}
-                    onClick={() => handleCellClick(rIndex, cIndex)}
-                    aria-label={`Toggle light at ${rIndex},${cIndex}`}
-                    className={`
-                      relative w-12 h-12 sm:w-16 sm:h-16 rounded-xl transition-all duration-300 ease-out
-                      ${isOn 
-                        ? 'bg-amber-400 shadow-[0_0_25px_-5px_rgba(251,191,36,0.6)] scale-100 z-10' 
-                        : 'bg-zinc-800 hover:bg-zinc-750 scale-95 shadow-inner'
-                      }
-                      ${isWon ? 'cursor-default' : 'cursor-pointer active:scale-90'}
-                    `}
-                  >
-                    {!isOn && (
-                      <div className="absolute inset-0 m-auto w-3 h-3 rounded-full bg-zinc-900/50" />
-                    )}
-                    {isOn && (
-                      <div className="absolute top-2 left-2 w-3 h-3 rounded-full bg-white/40 blur-[1px]" />
-                    )}
-                  </button>
-                ))}
-              </div>
+              row.map((isOn, cIndex) => (
+                <button
+                  key={`${rIndex}-${cIndex}`}
+                  onClick={() => handleCellClick(rIndex, cIndex)}
+                  aria-label={`Toggle light at ${rIndex},${cIndex}`}
+                  className={`
+                    relative w-full h-full rounded-md sm:rounded-xl transition-all duration-300 ease-out
+                    ${isOn 
+                      ? 'bg-amber-400 shadow-[0_0_15px_-2px_rgba(251,191,36,0.6)] scale-100 z-10' 
+                      : 'bg-zinc-800 hover:bg-zinc-750 scale-95 shadow-inner'
+                    }
+                    ${isWon ? 'cursor-default' : 'cursor-pointer active:scale-90'}
+                  `}
+                >
+                  {/* 只有在格子夠大時才顯示裝飾點 */}
+                  {grid.length <= 8 && !isOn && (
+                    <div className="absolute inset-0 m-auto w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-zinc-900/50" />
+                  )}
+                  {grid.length <= 8 && isOn && (
+                    <div className="absolute top-1 left-1 sm:top-2 sm:left-2 w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-white/40 blur-[1px]" />
+                  )}
+                </button>
+              ))
             ))}
           </div>
         </div>

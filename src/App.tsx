@@ -8,6 +8,7 @@ type View = 'game' | 'tutorial' | 'history';
 
 export default function App() {
   const [view, setView] = useState<View>('game');
+  const [gridSize, setGridSize] = useState(5);
   const [replayGrid, setReplayGrid] = useState<boolean[][] | null>(null);
   const [history, setHistory] = useState<GameRecord[]>(() => {
     const saved = localStorage.getItem('lightsup-history');
@@ -25,13 +26,15 @@ export default function App() {
     const newRecord: GameRecord = {
       id: crypto.randomUUID(),
       timestamp: Date.now(),
+      gridSize: gridSize, // Add gridSize to record
       ...data
-    };
+    } as GameRecord; // Cast to avoid TS error if type not updated yet
     setHistory(prev => [...prev, newRecord]);
   };
 
   const handleReplay = (grid: boolean[][]) => {
     setReplayGrid(grid);
+    setGridSize(grid.length); // Set size to match replay
     setView('game');
   };
 
@@ -43,22 +46,38 @@ export default function App() {
     <div 
       className="h-screen w-full bg-zinc-950 flex flex-col items-center text-zinc-100 font-sans selection:bg-amber-500/30 overflow-hidden"
     >
-      <style>{`
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
-      
       {/* Header Area */}
-      <div className="mb-8 text-center space-y-2 mt-10 flex-none">
+      <div className="mb-6 text-center space-y-2 mt-8 flex-none">
         <h1 className="text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-zinc-100 to-zinc-500">
           LIGHTS UP
         </h1>
         <div className="h-1 w-12 bg-amber-500 rounded-full mx-auto" />
+      </div>
+
+      {/* Difficulty Selector */}
+      <div className="mb-6 flex flex-col items-center gap-2 flex-none w-full max-w-xs px-4">
+        <div className="flex justify-between w-full text-xs font-bold text-zinc-500 uppercase tracking-wider">
+          <span>Grid Size</span>
+          <span className="text-amber-500">{gridSize} x {gridSize}</span>
+        </div>
+        <input
+          type="range"
+          min="1"
+          max="15"
+          value={gridSize}
+          onChange={(e) => {
+            setGridSize(parseInt(e.target.value));
+            setReplayGrid(null); // Reset replay when changing size
+          }}
+          disabled={view === 'tutorial'}
+          className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-amber-500 hover:accent-amber-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+        />
+        <div className="flex justify-between w-full text-[10px] text-zinc-600 font-mono">
+          <span>1</span>
+          <span>5</span>
+          <span>10</span>
+          <span>15</span>
+        </div>
       </div>
 
       {/* Navigation Tabs */}
@@ -112,13 +131,14 @@ export default function App() {
         <div className="flex justify-center">
           {view === 'game' && (
             <Game 
-              key={replayGrid ? 'replay' : 'normal'} // 強制重新掛載以重置狀態
+              key={replayGrid ? 'replay' : `game-${gridSize}`} // Force remount on size change
               onGameComplete={handleGameComplete} 
               initialLevel={replayGrid || undefined}
               onLevelReset={handleLevelReset}
+              gridSize={gridSize}
             />
           )}
-          {view === 'history' && <History records={history} onReplay={handleReplay} />}
+          {view === 'history' && <History records={history} onReplay={handleReplay} gridSize={gridSize} />}
           {view === 'tutorial' && <Tutorial />}
         </div>
       </div>
