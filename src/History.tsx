@@ -146,7 +146,7 @@ export default function History({ records, onReplay }: HistoryProps) {
                   itemStyle={{ color: '#fbbf24' }}
                 />
                 <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                  {stats.distribution.map((entry, index) => (
+                  {stats.distribution.map((_, index) => (
                     <Cell key={`cell-${index}`} fill="#fbbf24" fillOpacity={0.8} />
                   ))}
                 </Bar>
