@@ -103,6 +103,16 @@ export default function Game({ onGameComplete, initialLevel, onLevelReset, gridS
 
   if (grid.length === 0) return null;
 
+  // 根據網格密度動態調整樣式
+  const isLargeGrid = grid.length > 10;
+  const isMediumGrid = grid.length > 5;
+  
+  // 網格越密，間距越小，圓角越小，內距越小
+  const gapClass = isLargeGrid ? 'gap-0.5' : isMediumGrid ? 'gap-1.5' : 'gap-3';
+  const cellRoundedClass = isLargeGrid ? 'rounded-sm' : isMediumGrid ? 'rounded-md' : 'rounded-xl';
+  const boardRoundedClass = isLargeGrid ? 'rounded-xl' : isMediumGrid ? 'rounded-2xl' : 'rounded-[2rem]';
+  const pClass = isLargeGrid ? 'p-3' : isMediumGrid ? 'p-4' : 'p-6';
+
   return (
     <div className="flex flex-col items-center w-full max-w-4xl mx-auto animate-fade-in">
       
@@ -124,13 +134,14 @@ export default function Game({ onGameComplete, initialLevel, onLevelReset, gridS
       </div>
 
       {/* Game Board Container */}
-      <div className="relative group w-full max-w-[min(90vw,600px)] aspect-square">
+      {/* 固定最大寬度以接近原版 5x5 的視覺大小 (約 460px) */}
+      <div className="relative group w-full max-w-[460px] aspect-square">
         {/* Glow effect behind the board */}
-        <div className={`absolute -inset-1 bg-gradient-to-r from-amber-500/20 to-orange-500/20 rounded-[2rem] blur-xl transition-opacity duration-1000 ${isWon ? 'opacity-100' : 'opacity-0'}`} />
+        <div className={`absolute -inset-1 bg-gradient-to-r from-amber-500/20 to-orange-500/20 ${boardRoundedClass} blur-xl transition-opacity duration-1000 ${isWon ? 'opacity-100' : 'opacity-0'}`} />
         
-        <div className="relative bg-zinc-900/80 backdrop-blur-sm p-4 sm:p-6 rounded-[2rem] border border-zinc-800 shadow-2xl h-full flex items-center justify-center">
+        <div className={`relative bg-zinc-900/80 backdrop-blur-sm ${pClass} ${boardRoundedClass} border border-zinc-800 shadow-2xl h-full flex items-center justify-center`}>
           <div 
-            className="grid gap-1 sm:gap-2 w-full h-full"
+            className={`grid ${gapClass} w-full h-full`}
             style={{ 
               gridTemplateColumns: `repeat(${grid.length}, minmax(0, 1fr))`,
               gridTemplateRows: `repeat(${grid.length}, minmax(0, 1fr))`
@@ -143,7 +154,7 @@ export default function Game({ onGameComplete, initialLevel, onLevelReset, gridS
                   onClick={() => handleCellClick(rIndex, cIndex)}
                   aria-label={`Toggle light at ${rIndex},${cIndex}`}
                   className={`
-                    relative w-full h-full rounded-md sm:rounded-xl transition-all duration-300 ease-out
+                    relative w-full h-full ${cellRoundedClass} transition-all duration-300 ease-out
                     ${isOn 
                       ? 'bg-amber-400 shadow-[0_0_15px_-2px_rgba(251,191,36,0.6)] scale-100 z-10' 
                       : 'bg-zinc-800 hover:bg-zinc-750 scale-95 shadow-inner'
@@ -166,7 +177,7 @@ export default function Game({ onGameComplete, initialLevel, onLevelReset, gridS
       </div>
 
       {/* Win State / Controls */}
-      <div className="h-24 mt-12 flex flex-col items-center justify-center space-y-4">
+      <div className="h-24 mt-6 flex flex-col items-center justify-center space-y-4">
         {isWon ? (
           <div className="animate-fade-in-up text-center space-y-4">
             <div className="text-amber-400 font-bold text-lg tracking-widest uppercase drop-shadow-lg">
