@@ -104,15 +104,15 @@ export default function Game({ onGameComplete, initialLevel, onLevelReset }: Gam
     <div className="flex flex-col items-center w-full max-w-2xl mx-auto animate-fade-in">
       
       {/* Stats Bar */}
-      <div className="flex gap-12 mb-10">
-        <div className="flex flex-col items-center">
+      <div className="flex items-center gap-12 mb-10">
+        <div className="flex flex-col items-center w-36">
           <span className="text-xs font-bold tracking-[0.2em] text-zinc-500 uppercase mb-1">Time</span>
           <span className="text-2xl font-mono font-medium text-zinc-200 tabular-nums">
             {formatTime(time)}
           </span>
         </div>
         <div className="w-px h-10 bg-zinc-800" />
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center w-36">
           <span className="text-xs font-bold tracking-[0.2em] text-zinc-500 uppercase mb-1">Moves</span>
           <span className="text-2xl font-mono font-medium text-zinc-200 tabular-nums">
             {moves}
