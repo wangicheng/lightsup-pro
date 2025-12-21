@@ -12,7 +12,7 @@ export default function History({ records }: HistoryProps) {
     
     const totalGames = records.length;
     const totalTime = records.reduce((acc, r) => acc + r.timeSpent, 0);
-    const avgTime = Math.round(totalTime / totalGames);
+    const avgTime = totalTime / totalGames;
     
     // 排序時間以計算分位數
     const times = records.map(r => r.timeSpent).sort((a, b) => a - b);
@@ -68,9 +68,11 @@ export default function History({ records }: HistoryProps) {
   }, [records]);
 
   const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    const totalMs = Math.round(seconds * 1000);
+    const mins = Math.floor(totalMs / 60000);
+    const secs = Math.floor((totalMs % 60000) / 1000);
+    const ms = totalMs % 1000;
+    return `${mins}:${secs.toString().padStart(2, '0')}.${ms.toString().padStart(3, '0')}`;
   };
 
   const formatDate = (ts: number) => {

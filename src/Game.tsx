@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { generateRandomLevel, toggleLights, checkWin } from './utils/gameLogic';
 import type { GameRecord } from './types';
 
@@ -13,6 +13,7 @@ export default function Game({ onGameComplete }: GameProps) {
   const [isWon, setIsWon] = useState(false);
   const [time, setTime] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const startTimeRef = useRef<number>(0);
 
   // 初始化遊戲
   const startNewGame = useCallback(() => {
@@ -23,6 +24,7 @@ export default function Game({ onGameComplete }: GameProps) {
     setTime(0);
     setIsWon(false);
     setIsPlaying(true);
+    startTimeRef.current = Date.now();
   }, []);
 
   // 第一次加載
@@ -35,8 +37,9 @@ export default function Game({ onGameComplete }: GameProps) {
     let interval: number;
     if (isPlaying && !isWon) {
       interval = setInterval(() => {
-        setTime((prev) => prev + 1);
-      }, 1000);
+        const now = Date.now();
+        setTime((now - startTimeRef.current) / 1000);
+      }, 37); // 約 30fps 更新頻率
     }
     return () => clearInterval(interval);
   }, [isPlaying, isWon]);
@@ -53,9 +56,14 @@ export default function Game({ onGameComplete }: GameProps) {
     if (checkWin(newGrid)) {
       setIsWon(true);
       setIsPlaying(false);
+      
+      const endTime = Date.now();
+      const finalTime = (endTime - startTimeRef.current) / 1000;
+      setTime(finalTime);
+
       if (onGameComplete) {
         onGameComplete({
-          timeSpent: time,
+          timeSpent: finalTime,
           moves: newMoves,
           initialGrid: initialGrid
         });
@@ -63,11 +71,13 @@ export default function Game({ onGameComplete }: GameProps) {
     }
   };
 
-  // 格式化時間 mm:ss
+  // 格式化時間 mm:ss.ms
   const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    const totalMs = Math.floor(seconds * 1000);
+    const mins = Math.floor(totalMs / 60000);
+    const secs = Math.floor((totalMs % 60000) / 1000);
+    const ms = totalMs % 1000;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}.${ms.toString().padStart(3, '0')}`;
   };
 
   if (grid.length === 0) return null;
